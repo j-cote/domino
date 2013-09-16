@@ -17,14 +17,14 @@ The
 
 ### Example 1
 Finds all nodes in the entire tree of the document that look like: 
-    <font face="arial" ...></font>
+`<font face="arial" ...>contents here</font>`
 
 ```
 Document doc = ...;
 TagMatch tm = new TagMatch("font", "face", "arial", new NodeCallback() {
 	@Override
 	public void perform(Node node) {
-	  System.out.println("found it!");
+	  System.out.println("found one!");
 	}
 });
 
@@ -35,16 +35,16 @@ ds.execute(doc);
  
 ###Example 2
 Finds all nodes in the subtree of nodeToSearch that look like:
-    <p class="summer"><?><font face="arial"></font></?></p>
-where ? is any tag
+`<p class="summer"><?><font face="arial">contents here</font></?></p>`
+where `<?>` is any tag
 
 ```
-final Wrapper<ArrayList<String>> matched = new Wrapper<>(new ArrayList<String>());
+final Wrapper<String> matched = new Wrapper<>(null);
 
 DOMContext dc = new DOMContext(new NodeCallback() {
 	@Override
 	public void perform(Node node) {
-		matched2.get().add(node.getTextContent());
+		matched.set(node.getTextContent());
 	}
 });
 dc.addCriteria(new DOMContextCriteria().setTypeAsTagCriteria("font", "face", "arial"));
@@ -54,4 +54,6 @@ dc.addCriteria(new DOMContextCriteria().setTypeAsTagCriteria("p", "class", "summ
 DOMSearch ds = new DOMSearch();
 ds.addCheckable(dc);
 ds.execute(nodeToSearch);
+
+System.out.println("contents: " + matched.get());
 ```
