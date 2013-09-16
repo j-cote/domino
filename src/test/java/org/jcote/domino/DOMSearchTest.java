@@ -43,28 +43,28 @@ public class DOMSearchTest {
         return dp.getDocument();
 	}
 
-//	@Test
-//	public void tagMatchTest() throws SAXException, IOException, DOMSearchException {
-//		Document testDoc = createTestDoc();
-//		DOMSearch ds = new DOMSearch();
-//
-//		final Wrapper<ArrayList<String>> matched1 = new Wrapper<>(new ArrayList<String>());
-//		TagMatch tm1 = new TagMatch("font", "face", "arial", new NodeCallback() {
-//			
-//			@Override
-//			public void perform(Node node) {
-//				matched1.get().add(node.getTextContent());
-//			}
-//		});
-//		
-//		ds.addCheckable(tm1);
-//		ds.execute(testDoc);
-//		
-//
-//		List expected1 = new ArrayList<String>(Arrays.asList(
-//				new String[] {"normal", "italicized", "nineinchnails", "trent", "reznor"}));
-//		assertEquals(expected1, matched1.get());
-//	}
+	@Test
+	public void tagMatchTest() throws SAXException, IOException, DOMSearchException {
+		Document testDoc = createTestDoc();
+		DOMSearch ds = new DOMSearch();
+
+		final Wrapper<ArrayList<String>> matched1 = new Wrapper<>(new ArrayList<String>());
+		TagMatch tm1 = new TagMatch("font", "face", "arial", new NodeCallback() {
+			
+			@Override
+			public void perform(Node node) {
+				matched1.get().add(node.getTextContent());
+			}
+		});
+		
+		ds.addCheckable(tm1);
+		ds.execute(testDoc);
+		
+
+		List expected1 = new ArrayList<String>(Arrays.asList(
+				new String[] {"normal", "italicized", "nineinchnails", "trent", "reznor"}));
+		assertEquals(expected1, matched1.get());
+	}
 	
 	@Test
 	public void contextTest() throws SAXException, IOException, DOMSearchException {
