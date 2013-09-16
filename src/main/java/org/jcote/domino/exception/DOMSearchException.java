@@ -1,4 +1,4 @@
-package com.jcote.domino;
+package org.jcote.domino.exception;
 
 public class DOMSearchException extends Exception {
 

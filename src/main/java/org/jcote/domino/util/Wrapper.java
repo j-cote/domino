@@ -1,4 +1,4 @@
-package com.jcote.domino;
+package org.jcote.domino.util;
 
 public class Wrapper<E> {
 	private E object;

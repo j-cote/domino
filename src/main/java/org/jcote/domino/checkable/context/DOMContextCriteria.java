@@ -1,5 +1,8 @@
-package com.jcote.domino;
+package org.jcote.domino.checkable.context;
 
+import org.jcote.domino.checkable.tag.TagMatch;
+import org.jcote.domino.exception.DOMContextException;
+import org.jcote.domino.exception.DOMSearchException;
 import org.w3c.dom.Node;
 
 /**
@@ -19,6 +22,7 @@ public class DOMContextCriteria {
 		ExactlyN,		// match exactly N nodes
 		AtMostN,		// match at most N nodes until specified next criteria  -- WILL CONSUME NEXT CRITERIA AS WELL!
 		Any,			// match any number of nodes until specified next criteria  -- WILL CONSUME NEXT CRITERIA AS WELL!
+		Custom,			// match whatever the user wants
 	}
 	
 	private Type type;
@@ -26,79 +30,51 @@ public class DOMContextCriteria {
 	private DOMContextCriteria nextCriteria;	// used if Type is {AtMostN, Any}
 	private int n;						// used if Type is {AtMostN, ExactlyN}
 	private TagMatch tagMatch;	// used if Type is {TagCriteria}
+	private CustomContext customContext; // used if Type is {Custom}
 	
 	
-	public DOMContextCriteria(Type type) throws DOMContextException {
-		if (!(type == Type.Root)) {
-			throw new DOMContextException("Constructor called with () parameter, but Type is not one of: {Root}");
-		}
-		this.type = type;
+	public DOMContextCriteria setTypeAsRoot() {
+		this.type = Type.Root;
+		return this;
 	}
 
-	public DOMContextCriteria(Type type, String tagName) throws DOMContextException {
-		if (!(type == Type.Tag)) {
-			throw new DOMContextException("Constructor called with (tagName) parameter, but Type is not one of: {Tag}");
-		}
-		this.type = type;
+	public DOMContextCriteria setTypeAsTag(String tagName) {
+		this.type = Type.Tag;
 		this.tagName = tagName;
+		return this;
 	}
 	
-	public DOMContextCriteria(Type type, String tagName, String attrName, String attrValue) throws DOMContextException {
-		if (!(type == Type.TagCriteria)) {
-			throw new DOMContextException("Constructor called with (tagName, attrName, attrValue) parameters, but Type is not one of: {TagCriteria}");
-		}
-		this.type = type;
+	public DOMContextCriteria setTypeAsTagCriteria(String tagName, String attrName, String attrValue) {
+		this.type = Type.TagCriteria;
 		this.tagName = tagName;
 		this.tagMatch = new TagMatch();
 		this.tagMatch.addCriteria(tagName, attrName, attrValue);
+		return this;
 	}
-	
-	public DOMContextCriteria(Type type, TagMatch tagMatch) throws DOMContextException {
-		if (!(type == Type.TagCriteria)) {
-			throw new DOMContextException("Constructor called with (tagMatch) parameters, but Type is not one of: {TagCriteria}");
-		}
-		if (tagMatch == null) {
-			throw new DOMContextException("tagMatch must not be null.");
-		}
-		this.type = type;
-		this.tagMatch = tagMatch;
-	}
-	
-	public DOMContextCriteria(Type type, DOMContextCriteria nextCriteria, int n) throws DOMContextException {
-		if (!(type != Type.AtMostN)) {
-			throw new DOMContextException("Constructor called with (next, n) parameters, but Type is not one of: {AtMostN}");
-		}
-		if (nextCriteria == null) {
-			throw new DOMContextException("nextCriteria must not be null.");
-		}
-		if (n < 1) {
-			throw new DOMContextException("N must be at least 1.");
-		}
-		this.type = type;
+		
+	public DOMContextCriteria setTypeAsAtMostN(Type type, DOMContextCriteria nextCriteria, int n) {
+		this.type = Type.AtMostN;
 		this.nextCriteria = nextCriteria;
 		this.n = n;
+		return this;
 	}
 	
-	public DOMContextCriteria(Type type, int n) throws DOMContextException {
-		if (!(type == Type.ExactlyN)) {
-			throw new DOMContextException("Constructor called with (n) parameter, but Type is not one of: {ExactlyN}");
-		}
-		if (n < 1) {
-			throw new DOMContextException("N must be at least 1.");
-		}
-		this.type = type;
+	public DOMContextCriteria setTypeAsExactlyN(int n) {
+		this.type = Type.ExactlyN;
 		this.n = n;
+		return this;
 	}
 	
-	public DOMContextCriteria(Type type, DOMContextCriteria nextCriteria) throws DOMContextException {
-		if (!(type != Type.Any)) {
-			throw new DOMContextException("Constructor called with (next) parameter, but Type is not one of: {Any}");
-		}
-		if (nextCriteria == null) {
-			throw new DOMContextException("nextCriteria must not be null.");
-		}
-		this.type = type;
+	public DOMContextCriteria setTypeAsAny(DOMContextCriteria nextCriteria) {
+		this.type = Type.Any;
 		this.nextCriteria = nextCriteria;
+		return this;
+	}
+	
+	public DOMContextCriteria setTypeAsCustom(CustomContext customContext) {
+		this.type = Type.Custom;
+		this.customContext = customContext;
+		return this;
 	}
 	
 	
@@ -106,10 +82,10 @@ public class DOMContextCriteria {
 	 * See if the given node satisfies this DOMContextCriteria.
 	 * @param node
 	 * @return Returns number of nodes consumed by this object's criteria
-	 * @throws DOMContextException 
+	 * @throws DOMSearchException 
 	 */
-	public int checkContext(Node node) throws DOMContextException {
-		int i, j;
+	public int checkContext(Node node) throws DOMSearchException {
+		int i;
 		Node nextNode;
 		switch(this.type) {
 			case Tag:
@@ -118,7 +94,7 @@ public class DOMContextCriteria {
 				}
 				return 0;
 			case TagCriteria:
-				if (tagMatch.check(node)) {
+				if (tagMatch.checkImpl(node)) {
 					return 1;
 				}
 				return 0;
@@ -131,11 +107,11 @@ public class DOMContextCriteria {
 				i = 0;
 				nextNode = node.getParentNode();
 				while (nextNode != null) {
+					if (i == n) {
+						return n;
+					}
 					i++;
 					nextNode = nextNode.getParentNode();
-				}
-				if (i == n) {
-					return n;
 				}
 				return 0;
 			case AtMostN:
@@ -143,11 +119,11 @@ public class DOMContextCriteria {
 				nextNode = node.getParentNode();
 				while (nextNode != null) {
 					i++;
-					j = nextCriteria.checkContext(nextNode);
-					if (j > 0) {
+					int consumedNext = nextCriteria.checkContext(nextNode);
+					if (consumedNext > 0) {
 						// was able to be consumed from nextNode
 						// return total count of nodes consumed
-						return i + j;
+						return i + consumedNext;
 					}
 					// did not meet criteria this time
 					if (i == n) {
@@ -156,24 +132,26 @@ public class DOMContextCriteria {
 					}
 					nextNode = nextNode.getParentNode();
 				}
-				// got a null nextNode, or exhausted N nodes (failed to meet criteria)
+				// end of node parent chain
 				return 0;
 			case Any:
 				i = 0;
 				nextNode = node.getParentNode();
 				while (nextNode != null) {
 					i++;
-					j = nextCriteria.checkContext(nextNode);
-					if (j > 0) {
+					int consumedNext = nextCriteria.checkContext(nextNode);
+					if (consumedNext > 0) {
 						// was able to be consumed from nextNode
 						// return total count of nodes consumed
-						return i + j;
+						return i + consumedNext;
 					}
 					// did not meet criteria this time
 					nextNode = nextNode.getParentNode();
 				}
-				// got a null nextNode (failed to meet criteria)
+				// end of node chain
 				return 0;
+			case Custom:
+				return this.customContext.checkContext(node);
 		}
 		// failed to meet criteria
 		throw new DOMContextException("DOMContextCriteria has unknown Type: " + this.type);

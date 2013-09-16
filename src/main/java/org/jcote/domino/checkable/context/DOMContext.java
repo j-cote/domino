@@ -1,15 +1,24 @@
-package com.jcote.domino;
+package org.jcote.domino.checkable.context;
 
 import java.util.LinkedList;
 import java.util.List;
 
+import org.jcote.domino.checkable.Checkable;
+import org.jcote.domino.checkable.NodeCallback;
+import org.jcote.domino.exception.DOMContextException;
+import org.jcote.domino.exception.DOMSearchException;
 import org.w3c.dom.Node;
 
 
-public class DOMContext implements Checkable {
+public class DOMContext extends Checkable {
 	public LinkedList<DOMContextCriteria> contextCriteriaChain;
 
 	public DOMContext() {
+		this.contextCriteriaChain = new LinkedList<DOMContextCriteria>();
+	}
+	
+	public DOMContext(NodeCallback callback) {
+		super(callback);
 		this.contextCriteriaChain = new LinkedList<DOMContextCriteria>();
 	}
 	
@@ -40,18 +49,13 @@ public class DOMContext implements Checkable {
 	 * @return True if node is within specified context, False otherwise.
 	 * @throws DOMSearchException 
 	 */
-	public boolean check(Node node) throws DOMSearchException {
+	public boolean checkImpl(Node node) throws DOMSearchException {
 		DOMContextCriteria contextCriteria;
-		int consumed = 0;
-		
+
 		for (int i = 0; i < contextCriteriaChain.size(); i++) {
 			contextCriteria = contextCriteriaChain.get(i);
 			// try to consume some nodes with the next criteria
-			try {
-				consumed += contextCriteria.checkContext(node);
-			} catch (DOMContextException e) {
-				throw new DOMSearchException(e);
-			}
+			int consumed = contextCriteria.checkContext(node);
 			// see if criteria was met
 			if (consumed == 0) {
 				// chain broken (criteria not met)

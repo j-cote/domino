@@ -1,4 +1,4 @@
-package com.jcote.domino;
+package org.jcote.domino;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -6,6 +6,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.jcote.domino.checkable.Checkable;
+import org.jcote.domino.checkable.context.DOMContextCriteria;
+import org.jcote.domino.exception.DOMSearchException;
 import org.w3c.dom.Node;
 
 
