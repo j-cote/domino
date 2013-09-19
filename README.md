@@ -3,8 +3,8 @@ Domino
 
 Searches a DOM tree structure relative to a given node.
 
- * TagMatch criteria allows you to specify particular attribute key/value pairs to look for.
- * DOMContext criteria allows you to restrict matching tags to have a particular pattern of parent nodes.
+ * TagMatch criteria allows you to specify particular attribute key/value pairs to look for: `<tag key="value">blah</tag>`
+ * DOMContext criteria allows you to restrict matching tags to have a particular pattern of parent nodes: `<parent><child /></parent>`
  * Nodes will be traversed (and matched) in Depth-first manner. This means it will follow the order they appear in HTML source.
  * Criteria will be checked on each node in the order which they were added to DOMSearch.
  * A match count limit will cause criteria to stop being checked on nodes once the limit is reached.
